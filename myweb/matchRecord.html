@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang='ko'>
+
+<head>
+  <meta charset="UTF-8">
+  <title>매치 조회</title>
+  <link rel="stylesheet" type="text/css" href="./css/matchRecord.css">
+  <link rel="stylesheet" type="text/css" href="./css/headfooter.css">
+</head>
+
+<body>
+  <header>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"
+      integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g=="
+      crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <a href="index.html"><img src="./doc/logo1.png" alt="FION.GG 로고"></a>
+    <h1>전적 검색</h1>
+    <nav>
+      <ul>
+        <li><a href="index.html">홈</a></li>
+        <li><a href="matchRecord.html">유저 전적 검색</a></li>
+        <li><a href="tradeRecord.html">유저 거래내역 검색</a></li>
+      </ul>
+    </nav>
+  </header>
+  <main>
+    <div class="search-box">
+      <form action="#">
+        <input class="search-txt" type="text" id="nickname" name="game-search" placeholder="닉네임">
+        <button class="search-btn" type="button" onclick="loadUser()">
+          <i class="fas fa-search"></i>
+        </button>
+      </form>
+    </div>
+
+    <div class="table-container">
+      <table id="demoJSON"></table>
+      <table id="demoMatchDetail"></table>
+    </div>
+  </main>
+
+  <footer>
+    <p>2023 FION.GG &copy; email : kiingdonghoo@gmail.com</p>
+  </footer>
+
+</body>
+
+
+
+<script>
+  var api_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJYLUFwcC1SYXRlLUxpbWl0IjoiNTAwOjEwIiwiYWNjb3VudF9pZCI6IjY1NDU0NzQ1MyIsImF1dGhfaWQiOiIyIiwiZXhwIjoxNjk3ODQ2NTk0LCJpYXQiOjE2ODIyOTQ1OTQsIm5iZiI6MTY4MjI5NDU5NCwic2VydmljZV9pZCI6IjQzMDAxMTQ4MSIsInRva2VuX3R5cGUiOiJBY2Nlc3NUb2tlbiJ9.Nte4_BeNb6O1EfQCJ4zbzAvtwXBQJmgHb0CrsdVqoJE";
+
+  // 닉네임으로 사용자 정보를 불러오는 함수
+  function loadUser() {
+    var nickname = document.getElementById('nickname').value.trim();
+    if (nickname === '') {
+      alert('닉네임을 입력해주세요.');
+      return;
+    }
+    var url = `https://api.nexon.co.kr/fifaonline4/v1.0/users?nickname=${nickname}`;
+
+    fetch(url, {
+      headers: {
+        'Authorization': api_key,
+      }
+    })
+      .then(response => response.json())
+      .then(jsonObj => {
+        const accessId = jsonObj.accessId;
+        loadMatchIds(accessId);
+        parseUser(jsonObj);
+      });
+  }
+
+  function loadMatchIds(accessId) {
+    const matchesUrl = `https://api.nexon.co.kr/fifaonline4/v1.0/users/${accessId}/matches?matchtype=50&offset=0&limit=21`; // 유저의 매치 리스트 가져오기
+
+    tableRows.length = 0;
+
+    fetch(matchesUrl, {
+      headers: {
+        Authorization: api_key,
+      },
+    })
+      .then((response) => response.json())
+      .then((jsonObj) => {
+        for (let i = 0; i < jsonObj.length; i++) {
+          const matchId = jsonObj[i];
+          const matchUrl = `https://api.nexon.co.kr/fifaonline4/v1.0/matches/${matchId}`; // 매치의 정보 가져오기
+          fetch(matchUrl, {
+            headers: {
+              Authorization: api_key,
+            },
+          })
+            .then((response) => response.json())
+            .then((matchObj) => {
+              parseMatchDetail(matchObj);
+            });
+        }
+      });
+  }
+
+  function parseUser(jsonObj) {
+    const table = [];
+    table.push("<tr><th>닉네임</th><th>레벨</th></tr>");
+
+
+    const { nickname, level } = jsonObj;
+
+    table.push(`
+          <tr>
+            <td>${nickname}</td>
+            <td>${level}</td>
+          </tr>
+        `);
+
+
+    document.getElementById('demoJSON').innerHTML = table.join('\n');
+  }
+
+  const tableRows = [];
+
+  function parseMatchDetail(matchObj) {
+
+    var searchnickname = document.getElementById('nickname').value.trim();
+
+    const winColor = 'blue'; // 승인 사람의 nickname에 적용할 색
+    const loseColor = 'red'; // 패배한 사람의 nickname에 적용할 색
+    const drawColor = 'gray'; // 무승부인 사람의 nickname에 적용할 색
+
+    const { matchDate, matchInfo } = matchObj;
+    const matchResult1 = matchInfo[0].matchDetail.matchResult; //매치의 0번째 유저
+    const matchResult2 = matchInfo[1].matchDetail.matchResult; //매치의 1번째 유저
+
+    const goalTotal1 = matchInfo[0].shoot.goalTotal; //0번째 유저 골 수
+    const goalTotal2 = matchInfo[1].shoot.goalTotal; // 1번째 유저 골 수
+
+    const winnerIndex = matchResult1 === '승' ? 0 : (matchResult1 === '패' ? 1 : -1); // 승이면 0 패면 1 무승부면 -1 
+    const loserIndex = winnerIndex === 0 ? 1 : (winnerIndex === 1 ? 0 : -1);
+
+    const nickname1Color = winnerIndex === 0 ? winColor : (loserIndex === 0 ? loseColor : drawColor); // 색깔 저장
+    const nickname2Color = winnerIndex === 1 ? winColor : (loserIndex === 1 ? loseColor : drawColor);
+
+    const nickname1 = `<span style="color:${nickname1Color}">${matchInfo[0].nickname}</span>`; // 닉네임에 승무패에 따라 색 입히기
+    const nickname2 = `<span style="color:${nickname2Color}">${matchInfo[1].nickname}</span>`;
+
+    const dateObj = new Date(matchDate); // 날짜 date타입으로 바꾸고  "yyyy-mm-dd hh:mm" 형식으로 바꾸기
+    const formattedDate = `${dateObj.getFullYear()}-${(dateObj.getMonth() + 1).toString().padStart(2, "0")}-${dateObj.getDate().toString().padStart(2, "0")} 
+        ${dateObj.getHours().toString().padStart(2, "0")}:${dateObj.getMinutes().toString().padStart(2, "0")}`;
+
+    const searchnick = matchInfo[0].nickname === searchnickname ? matchInfo[0].nickname : matchInfo[1].nickname; // 검색한 닉네임 저장
+    const searchnickWin = (searchnick === matchInfo[winnerIndex].nickname); // 검색한 닉네임이 이겼을 때 저장용
+    const searchnickLose = (searchnick === matchInfo[loserIndex].nickname); // 검색한 닉네임이 졌을 때 저장용
+
+    const searchMatchResult = searchnickWin ? 'winner-row' : (searchnickLose ? 'loser-row' : 'draw-row'); // 검색한 닉 이겼으면 파란색 졌으면 빨간색 비기면 회색
+
+    const newRow = `
+  <tr class="${searchMatchResult}">
+    <td> (${matchResult1})  ${nickname1} vs ${nickname2}  (${matchResult2})</td>   
+    <td>${goalTotal1} : ${goalTotal2}</td>        
+    <td>${formattedDate}</td>
+  </tr>
+`;
+
+    tableRows.push(newRow);
+    tableRows.sort((row1, row2) => { // 날짜 정규식 패턴사용해서  yyyy-mm-dd hh:mm 형식 비교해서 정렬
+      const date1 = new Date(row1.match(/\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}/)[0]);
+      const date2 = new Date(row2.match(/\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}/)[0]);
+      return date2 - date1;
+    });
+
+    document.getElementById('demoMatchDetail').innerHTML = `
+      <tr>
+        <th>닉네임</th>
+        <th>스코어</th>
+        <th>매치 날짜</th>
+      </tr>
+      ${tableRows.join('\n')}
+    `;
+
+  }
+
+
+</script>
+
+</html>

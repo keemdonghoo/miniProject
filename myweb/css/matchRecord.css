@@ -1,0 +1,54 @@
+   .table-container {
+     height: 1000px;
+     overflow-y: auto;
+   }
+
+   form {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 30px;
+}
+
+
+   table {
+     border-collapse: collapse;
+     margin: 20px auto;
+     width: 80%;
+   }
+
+   th,
+   td {
+     padding: 12px;
+     text-align: center;
+     border: 1px solid #ddd;
+     font-size: 14px;
+   }
+
+   th {
+     background-color: #e8e8e8;
+     font-weight: bold;
+     color: #333;
+   }
+
+   td {
+     background-color: rgba(255, 255, 255, 0.9);
+     /* 반투명 흰색으로 설정합니다. */
+     ;
+   }
+
+   tr:hover {
+     background-color: #ddd;
+   }
+
+   .winner-row {
+    background-color: blue;
+  }
+  
+  .loser-row {
+    background-color: red;
+  }
+  
+  .draw-row {
+    background-color: gray;
+  }

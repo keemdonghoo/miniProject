@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang='ko'>
+
+<head>
+  <meta charset="UTF-8">
+  <title>FION.GG</title>
+  <link rel="stylesheet" type="text/css" href="./css/main.css">
+  <link rel="stylesheet" type="text/css" href="./css/headfooter.css">
+</head>
+
+<body>
+  <header>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"
+      integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g=="
+      crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <a href="index.html"><img src="./doc/logo.png"></a>
+    <h1>FION.GG</h1>
+
+    <nav>
+      <ul>
+        <li><a href="index.html">홈</a></li>
+        <li><a href="matchRecord.html">유저 전적 검색</a></li>
+        <li><a href="tradeRecord.html">유저 거래내역 검색</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+
+    <div class="video-container">
+      <h2>추천영상</h2>
+      <iframe class="video" src="https://www.youtube.com/embed/N6g-ioOrZCw" frameborder="0"
+        allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+      <iframe class="video" src="https://www.youtube.com/embed/cbru3pAtYLA" frameborder="0"
+        allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe><br>
+      <iframe class="video" src="https://www.youtube.com/embed/bPDOsOhXFZk" frameborder="0"
+        allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+      <iframe class="video" src="https://www.youtube.com/embed/bx9xtYC7LBw" frameborder="0"
+        allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    </div>
+
+
+    <div class="cal-container">
+      <h3>수수료 계산기</h3>
+      <div class="form-group">
+        <label for="price">거래 가격:</label>
+        <input type="number" id="price" name="price" required>
+      </div>
+      <div class="form-group">
+        <label for="commission">기본 수수료(%):</label>
+        <input type="number" id="commission" name="commission" value="40" readonly>
+      </div>
+      <div class="form-group">
+        <label>수수료 할인 :</label>
+        <input type="radio" name="discount" value="0" checked>없음
+        <input type="radio" name="discount" value="20">TOP클래스
+        <input type="radio" name="discount" value="30">PC방
+        <input type="radio" name="discount" value="50">TOP + PC방
+      </div>
+      <button type="button" onclick="calculateCommission()">계산하기</button>
+      <div id="result"></div>
+    </div>
+
+  </main>
+
+  <footer>
+    <div class="copyright">
+      <address>
+        <span style="width:100%"> Copyright © www.FION.GG All rights reserved. </span>
+      </address>
+      <div id="about-us">피온지지 운영팀: kiingdonghoo@gmail.com |
+        <a href="#">이용약관</a>
+        <a href="#">개인정보처리방침</a>
+        <a href="#">청소년보호정책</a>
+        <a href="#">문의/신고</a>
+      </div>
+    </div>
+    <div>
+      <ul>
+        <li><a href="https://fifaonline4.nexon.com/main/index"><img src="./doc/fionlogo.png"></a></li>
+        <li><a href="https://www.youtube.com/@EASPORTSTMFIFAONLINE"><img src="./doc/youtubelogo.png"></a></li>
+        <li><a href="https://www.facebook.com/FIFA.ONLINE.4th.four/?locale=ko_KR"><img src="./doc/facebooklogo.png"></a>
+        </li>
+        <li><a href="https://twitter.com/FIFA_ONLINE_4"><img src="./doc/twitterlogo.png"></a></li>
+      </ul>
+    </div>
+  </footer>
+</body>
+
+<script>
+  function calculateCommission() {
+    var price = parseInt(document.getElementById("price").value);
+    var commission = parseInt(document.getElementById("commission").value);
+    var discount = parseInt(document.querySelector('input[name="discount"]:checked').value);
+    var discountedCommission = (100 - discount) * commission / 100;
+    var commissionAmount = price * discountedCommission / 100;
+    var receive = price - commissionAmount;
+    document.getElementById("result").innerHTML = "받을 금액은 " + receive.toLocaleString() + "BP입니다.";
+  }
+</script>
+
+</html>

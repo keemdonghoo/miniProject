@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang='ko'>
+
+<head>
+  <meta charset="UTF-8">
+  <title>거래내역 조회</title>
+  <link rel="stylesheet" type="text/css" href="./css/tradeRecord.css">
+  <link rel="stylesheet" type="text/css" href="./css/headfooter.css">
+</head>
+
+<body>
+  <header>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"
+      integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g=="
+      crossorigin="anonymous" referrerpolicy="no-referrer" /> 
+    <a href="index.html"><img src="./doc/logo1.png" alt="FION.GG 로고"></a>
+    <h1>거래내역 검색</h1>
+    <nav>
+      <ul>
+        <li><a href="index.html">홈</a></li>
+        <li><a href="matchRecord.html">유저 전적 검색</a></li>
+        <li><a href="tradeRecord.html">유저 거래내역 검색</a></li>
+      </ul>
+    </nav>
+  </header>
+  <main>
+    <div class="search-box">
+      <form action="#">
+        <input class="search-txt" type="text" id="nickname" name="game-search" placeholder="닉네임">
+        <button class="search-btn" type="button" id="buybutton" onclick="loadUserBuyList()">
+          <i class="fa-solid fa-basket-shopping"></i>
+          <button class="search-btn" type="button" id="sellbutton" onclick="loadUserSellList()">
+            <i class="fa-regular fa-money-bill-1"></i>
+          </button>
+      </form>
+    </div>
+    <div class="table-container">
+      <table id="demoJSON"></table>
+      <table id="demoBuyList"></table>
+      <table id="demoSellList"></table>
+    </div>
+  </main>
+
+  <footer>
+    <p>2023 FION.GG &copy; email : kiingdonghoo@gmail.com</p>
+  </footer>
+
+</body>
+
+<script>
+  var api_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJYLUFwcC1SYXRlLUxpbWl0IjoiNTAwOjEwIiwiYWNjb3VudF9pZCI6IjY1NDU0NzQ1MyIsImF1dGhfaWQiOiIyIiwiZXhwIjoxNjk3ODQ2NTk0LCJpYXQiOjE2ODIyOTQ1OTQsIm5iZiI6MTY4MjI5NDU5NCwic2VydmljZV9pZCI6IjQzMDAxMTQ4MSIsInRva2VuX3R5cGUiOiJBY2Nlc3NUb2tlbiJ9.Nte4_BeNb6O1EfQCJ4zbzAvtwXBQJmgHb0CrsdVqoJE";
+
+  // 닉네임으로 사용자 정보를 불러오는 함수
+  function loadUserBuyList() {
+    var nickname = document.getElementById('nickname').value.trim();
+    if (nickname === '') {
+      alert('닉네임을 입력해주세요.');
+      return;
+    }
+    var url = `https://api.nexon.co.kr/fifaonline4/v1.0/users?nickname=${nickname}`;
+
+    fetch(url, {
+      headers: {
+        'Authorization': api_key,
+      }
+    })
+      .then(response => response.json())
+      .then(jsonObj => {
+        const accessId = jsonObj.accessId;
+        loadBuyList(accessId);
+        parseUser(jsonObj);
+      });
+  }
+
+  function loadUserSellList() {
+    var nickname = document.getElementById('nickname').value.trim();
+    if (nickname === '') {
+      alert('닉네임을 입력해주세요.');
+      return;
+    }
+    var url = `https://api.nexon.co.kr/fifaonline4/v1.0/users?nickname=${nickname}`;
+
+    fetch(url, {
+      headers: {
+        'Authorization': api_key,
+      }
+    })
+      .then(response => response.json())
+      .then(jsonObj => {
+        const accessId = jsonObj.accessId;
+        loadSellList(accessId);
+        parseUser(jsonObj);
+      });
+  }
+
+  function loadBuyList(accessId) {
+    const buyListUrl = `https://api.nexon.co.kr/fifaonline4/v1.0/users/${accessId}/markets?tradetype=buy&offset=0&limit=21`;
+
+    buyTable.length = 0;
+
+    fetch(buyListUrl, {
+      headers: {
+        Authorization: api_key,
+      },
+    })
+      .then((response) => response.json())
+      .then((jsonObj) => {
+        for (let i = 0; i < jsonObj.length; i++) {
+          parseBuyList(jsonObj[i])
+        }
+      });
+  }
+
+  function loadSellList(accessId) {
+    const sellListUrl = `https://api.nexon.co.kr/fifaonline4/v1.0/users/${accessId}/markets?tradetype=sell&offset=0&limit=21`;
+
+    sellTable.length = 0;
+
+    fetch(sellListUrl, {
+      headers: {
+        Authorization: api_key,
+      },
+    })
+      .then((response) => response.json())
+      .then((jsonObj) => {
+        for (let i = 0; i < jsonObj.length; i++) {
+          parseSellList(jsonObj[i])
+        }
+      });
+  }
+
+
+  function parseUser(jsonObj) {
+    const table = [];
+    table.push("<tr><th>닉네임</th><th>레벨</th></tr>");
+
+
+    const { nickname, level } = jsonObj;
+
+    table.push(`
+          <tr>
+            <td><span style="font-size: 18px; font-weight: 700;">${nickname}</span></td>
+            <td><span style="font-size: 18px; font-weight: 700;">${level}</span></td>
+          </tr>
+        `);
+
+    document.getElementById('demoJSON').innerHTML = table.join('\n');
+  }
+
+  const buyTable = [];
+  const sellTable = [];
+
+  function parseBuyList(jsonObj) {
+
+    const tradeDate = jsonObj.tradeDate; // 거래날짜
+    const value = jsonObj.value.toLocaleString(); // 1000단위 콤마찍기
+    const spid = jsonObj.spid; // 선수고유코드
+    const grade = jsonObj.grade; //강화등급 
+    const classSpid = String(spid).substring(0, 3); //선수고유코드에서 앞자리 3자리는 시즌코드
+    const playerImageURL = `https://fo4.dn.nexoncdn.co.kr/live/externalAssets/common/playersAction/p${spid}.png`; // 미니페이스온
+    const noplayerImage = `https://fo4.dn.nexoncdn.co.kr/live/externalAssets/common/players/not_found.png`; // 페이스온 없을 때 
+    const gradeImage = `https://fionhub.com/storage/images/strong/${grade}.png`; // 강화등급 이미지
+
+    // Fetch the SPID JSON data
+
+    fetch('https://static.api.nexon.co.kr/fifaonline4/latest/spid.json')
+      .then(response => response.json())
+      .then(players => {
+        const player = players.find(player => player.id === spid); // spid로 선수 이름 가져오기
+        const playerName = player ? player.name : 'Unknown'; // 없으면 Unknown
+
+        const dateObj = new Date(tradeDate); // string타입 거래날짜를 Date타입으로 바꾸기
+        const formattedDate = `${dateObj.getFullYear()}-${(dateObj.getMonth() + 1).toString().padStart(2, "0")}-${dateObj.getDate().toString().padStart(2, "0")} 
+      ${dateObj.getHours().toString().padStart(2, "0")}:${dateObj.getMinutes().toString().padStart(2, "0")}`; // 날짜 date타입으로 바꾸고  "yyyy-mm-dd hh:mm" 형식으로 바꾸기
+
+        // Fetch the seasonId JSON data
+        fetch('https://static.api.nexon.co.kr/fifaonline4/latest/seasonid.json')
+          .then(response => response.json())
+          .then(seasonIds => {
+            const seasonId = seasonIds.find(seasonId => seasonId.seasonId == classSpid); // 고유코드 앞 세자리로 시즌맞는거 찾기
+            const classImg = seasonId ? seasonId.seasonImg : '??CLASS'; // 시즌이미지 가져오기
+
+            const newRow = `
+        <tr>
+          <td>${formattedDate}</td>
+          <td>
+            <img src="${classImg}" style="width:30px;">
+            <span style="font-size: 18px; font-weight: 700;">${playerName}</span>
+            <img src="${gradeImage}" style="width:30px; height:18.5px;">
+            <br>
+            <img src="${playerImageURL}" onerror="this.onerror=null; this.src='${noplayerImage}'" alt="이미지없습니다"">
+          </td>
+          <td> <span style="font-size: 18px; font-weight: 700;">${value}</span> BP</td>
+        </tr>
+      `;
+
+            buyTable.push(newRow);
+            buyTable.sort((row1, row2) => {
+              const date1 = new Date(row1.match(/\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}/)[0]); //  "yyyy-mm-dd hh:mm" 형식으로 날짜 비교해서 Sort
+              const date2 = new Date(row2.match(/\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}/)[0]);
+              return date2 - date1;
+            });
+
+            document.getElementById('demoBuyList').innerHTML = `
+          <tr>
+            <th>구매 일자</th>
+            <th>선수명</th>
+            <th>구매가격</th>
+          </tr>
+          ${buyTable.join('\n')}
+        `;
+            document.getElementById('demoSellList').innerHTML = ''; // 판매테이블 비우기
+          });
+      });
+  }
+
+  function parseSellList(jsonObj) {
+    const tradeDate = jsonObj.tradeDate; //거래날짜
+    const value = jsonObj.value.toLocaleString(); // 선수가치 1000단위 콤마
+    const spid = jsonObj.spid; // 선수고유코드
+    const grade = jsonObj.grade; //강화등급
+    const classSpid = String(spid).substring(0, 3); //시즌 아이디
+    const playerImageURL = `https://fo4.dn.nexoncdn.co.kr/live/externalAssets/common/playersAction/p${spid}.png`; // 선수 미니페이스온
+    const noplayerImage = `https://fo4.dn.nexoncdn.co.kr/live/externalAssets/common/players/not_found.png`; // 미니페이스온 없을 시 notfound이미지
+    const gradeImage = `https://fionhub.com/storage/images/strong/${grade}.png`; // 강화등급 이미지
+
+    
+    fetch('https://static.api.nexon.co.kr/fifaonline4/latest/spid.json')
+      .then(response => response.json())
+      .then(players => {
+        const player = players.find(player => player.id === spid); // 선수이름 
+        const playerName = player ? player.name : 'Unknown'; // 못찾으면 Unknown
+
+        const dateObj = new Date(tradeDate); // 날짜 Date타입
+        const formattedDate = `${dateObj.getFullYear()}-${(dateObj.getMonth() + 1).toString().padStart(2, "0")}-${dateObj.getDate().toString().padStart(2, "0")} 
+      ${dateObj.getHours().toString().padStart(2, "0")}:${dateObj.getMinutes().toString().padStart(2, "0")}`; //  "yyyy-mm-dd hh:mm" 형식
+
+        
+        fetch('https://static.api.nexon.co.kr/fifaonline4/latest/seasonid.json')
+          .then(response => response.json())
+          .then(seasonIds => {
+            const seasonId = seasonIds.find(seasonId => seasonId.seasonId == classSpid); // 시즌아이디로 시즌찾기
+            const classImg = seasonId ? seasonId.seasonImg : '??CLASS'; // 시즌 이미지 가져오기 못찾으면 ??CLASS
+
+            const newRow = `
+        <tr>
+          <td>${formattedDate}</td>
+          <td>
+            <img src="${classImg}" style="width:30px;">
+            <span style="font-size: 18px; font-weight: 700;">${playerName}</span>
+            <img src="${gradeImage}" style="width:30px; height:18.5px;">
+            <br>
+            <img src="${playerImageURL}" onerror="this.onerror=null; this.src='${noplayerImage}'" alt="이미지없습니다"">
+          </td>
+          <td> <span style="font-size: 18px; font-weight: 700;">${value}</span> BP</td>
+        </tr>
+      `;
+            sellTable.push(newRow);
+            sellTable.sort((row1, row2) => {
+              const date1 = new Date(row1.match(/\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}/)[0]); //날짜순 정렬
+              const date2 = new Date(row2.match(/\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}/)[0]);
+              return date2 - date1;
+            });
+
+            document.getElementById('demoSellList').innerHTML = `
+        <tr>
+          <th>판매일자</th>
+          <th>선수</th>
+          <th>판매가격</th>
+        </tr>
+        ${sellTable.join('\n')}
+      `;
+            document.getElementById('demoBuyList').innerHTML = '';
+          });
+      });
+  }
+
+
+</script>
+
+</html>
