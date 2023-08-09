@@ -13,3 +13,5 @@
 
 
 ![전적검색](./myweb/doc/MatchRecord.png)
+![구매목록](./myweb/doc/BuyRecord.png)
+![판매목록](./myweb/doc/SellRecord.png)
