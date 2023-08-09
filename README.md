@@ -12,4 +12,4 @@
 <br>
 
 
-![전적검색](./doc/MatchRecord.png)
+![전적검색](../doc/MatchRecord.png)
