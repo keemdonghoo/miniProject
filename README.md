@@ -9,6 +9,9 @@
 * Json, Nexon API
 <br>
 
+### **메인 화면**
+![전적검색](./myweb/doc/WebMain.png)
+
 ### **전적 검색** 
 ![전적검색](./myweb/doc/MatchRecord.png)
 <br><br><br><br><br><br>
